@@ -13,7 +13,8 @@
     --popover: 0 0% 100%;
     --popover-foreground: 20 10% 15%;
 
-    --primary: 21 100% 50%; /* Orange from image (#FF5A00) */
+  /* Brand CTA Orange #F74A17 */
+  --primary: 13 91% 54%;
     --primary-foreground: 0 0% 100%; /* White */
 
     --secondary: 20 10% 94%; /* Light Gray */
@@ -22,7 +23,8 @@
     --muted:  20 10% 92%; /* Lighter Gray */
     --muted-foreground: 20 10% 45%; /* Medium Gray */
 
-    --accent: 21 100% 50%; /* Orange from image (#FF5A00) */
+  /* Accent Purple #6C17F7 */
+  --accent: 270 90% 54%;
     --accent-foreground: 0 0% 100%; /* White */
 
     --destructive: 0 72% 51%; /* Red */
@@ -36,7 +38,7 @@
 
     --border: 20 10% 88%; /* Light Gray Border */
     --input: 20 10% 88%; /* Light Gray Input Background */
-    --ring: 21 100% 50%; /* Orange from image (#FF5A00) for focus rings */
+  --ring: 13 91% 54%; /* CTA Orange for focus rings */
 
     --chart-1: 12 76% 61%;
     --chart-2: 173 58% 39%;
@@ -48,12 +50,12 @@
     /* Sidebar variables updated for consistency */
     --sidebar-background: 0 0% 98%;
     --sidebar-foreground: 20 10% 15%;
-    --sidebar-primary: 21 100% 50%;
+  --sidebar-primary: 13 91% 54%;
     --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 0 0% 94%;
     --sidebar-accent-foreground: 20 10% 15%;
     --sidebar-border: 20 10% 85%;
-    --sidebar-ring: 21 100% 50%;
+  --sidebar-ring: 13 91% 54%;
   }
 
   .dark {
@@ -66,7 +68,7 @@
     --popover: 20 8% 10%;
     --popover-foreground: 20 5% 85%;
 
-    --primary: 21 100% 55%; /* Slightly brighter Orange for dark */
+  --primary: 13 91% 60%; /* CTA Orange tweaked for dark */
     --primary-foreground: 0 0% 100%; /* White on Orange */
 
     --secondary: 20 8% 18%; /* Darker variant of dark gray */
@@ -75,7 +77,7 @@
     --muted: 20 8% 20%;
     --muted-foreground: 20 5% 55%; /* Darker Muted Gray */
 
-    --accent: 21 100% 55%; /* Orange from image (#FF5A00), brighter for dark */
+  --accent: 270 90% 60%; /* Purple accent tweaked for dark */
     --accent-foreground: 0 0% 100%; /* White */
 
     --destructive: 0 70% 55%; /* Adjusted Red for dark */
@@ -89,7 +91,7 @@
 
     --border: 20 8% 22%; /* Dark Gray Border */
     --input: 20 8% 22%; /* Dark Gray Input Background */
-    --ring: 21 100% 55%; /* Orange from image (#FF5A00), brighter for dark, for focus rings */
+  --ring: 13 91% 60%; /* CTA Orange for focus rings in dark */
 
     --chart-1: 220 70% 50%;
     --chart-2: 160 60% 45%;
@@ -100,12 +102,12 @@
     /* Sidebar variables updated for consistency */
     --sidebar-background: 20 8% 8%;
     --sidebar-foreground: 20 5% 85%;
-    --sidebar-primary: 21 100% 55%;
+  --sidebar-primary: 13 91% 60%;
     --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 20 8% 14%;
     --sidebar-accent-foreground: 20 5% 85%;
     --sidebar-border: 20 8% 20%;
-    --sidebar-ring: 21 100% 55%;
+  --sidebar-ring: 13 91% 60%;
   }
 }
 
@@ -114,6 +116,37 @@
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-body;
+  }
+}
+
+/* Font utility classes mapped to CSS variables set by next/font */
+@layer utilities {
+  .font-heading { font-family: var(--font-heading), ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji"; }
+  .font-body { font-family: var(--font-body), ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji"; }
+}
+
+/* Persistent, thin scrollbar for cross-platform visibility */
+@layer utilities {
+  .persistent-scrollbar {
+    scrollbar-width: thin; /* Firefox */
+    scrollbar-color: hsl(var(--border) / 0.6) transparent;
+  }
+
+  .persistent-scrollbar::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  .persistent-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .persistent-scrollbar::-webkit-scrollbar-thumb {
+    background: hsl(var(--border) / 0.6);
+    border-radius: 9999px;
+    border: 3px solid transparent;
+    background-clip: padding-box;
+  }
+  .persistent-scrollbar:hover::-webkit-scrollbar-thumb {
+    background: hsl(var(--border) / 0.8);
   }
 }

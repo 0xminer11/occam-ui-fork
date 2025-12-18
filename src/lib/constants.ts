@@ -50,7 +50,8 @@ export const MOCK_USER_POSITIONS: UserPosition[] = [
     usbdDebt: 30000,
     collateralRatio: 250,
     liquidationThreshold: 150,
-    status: 'Safe',
+  status: 'Safe',
+  score: 85,
   },
   {
     id: '2',
@@ -59,7 +60,8 @@ export const MOCK_USER_POSITIONS: UserPosition[] = [
     usbdDebt: 15000,
     collateralRatio: 160,
     liquidationThreshold: 150,
-    status: 'Warning',
+  status: 'Warning',
+  score: 70,
   },
   {
     id: '3',
@@ -68,7 +70,8 @@ export const MOCK_USER_POSITIONS: UserPosition[] = [
     usbdDebt: 10000,
     collateralRatio: 120,
     liquidationThreshold: 150,
-    status: 'Liquidated',
+  status: 'Liquidated',
+  score: 30,
   },
     {
     id: '4',
@@ -77,7 +80,8 @@ export const MOCK_USER_POSITIONS: UserPosition[] = [
     usbdDebt: 50000,
     collateralRatio: 310,
     liquidationThreshold: 150,
-    status: 'Safe',
+  status: 'Safe',
+  score: 92,
   },
   {
     id: '5',
@@ -86,7 +90,8 @@ export const MOCK_USER_POSITIONS: UserPosition[] = [
     usbdDebt: 12000,
     collateralRatio: 130,
     liquidationThreshold: 150,
-    status: 'Warning',
+  status: 'Warning',
+  score: 58,
   },
 ];
 

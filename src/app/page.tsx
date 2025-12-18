@@ -15,7 +15,7 @@ export default function DeFiPulsePage() {
   };
 
   return (
-    <div className="space-y-12">
+  <div className="space-y-12 font-body">
       <GlobalMetricsSection />
       <Separator />
       <UserLookupSection onAddressSubmit={handleAddressSubmit} isTableLoading={isTableLoading} />
