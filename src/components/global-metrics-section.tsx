@@ -57,23 +57,33 @@ export function GlobalMetricsSection() {
   const [error, setError] = React.useState<string | null>(null);
 
   React.useEffect(() => {
+    const controller = new AbortController();
     const fetchMetrics = async () => {
       setLoading(true);
       setError(null);
       try {
-        const response = await fetch('https://api-occam.bima.money/service/stat');
+        const response = await fetch('https://api-occam.bima.money/service/stat', {
+          method: 'GET',
+          cache: 'no-store',
+          mode: 'cors',
+          headers: { 'Accept': 'application/json' },
+          signal: controller.signal,
+        });
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
-        const data: ApiMetric = await response.json();
+        const raw = await response.json();
+        // Relaxed parsing: accept either strings or numbers and missing fields
+        const data: ApiMetric = {
+          btcAmount: String(raw.btcAmount ?? raw.btc_amount ?? '0'),
+          usbdMinted: String(raw.usbdMinted ?? raw.usbd_minted ?? '0'),
+          collateralRatio: String(raw.collateralRatio ?? raw.collateral_ratio ?? '0'),
+          users: Number(raw.users ?? raw.active_wallets ?? 0),
+        };
         setMetrics(transformApiDataToGlobalMetrics(data));
       } catch (e) {
-        if (e instanceof Error) {
-          setError(e.message);
-        } else {
-          setError('An unknown error occurred');
-        }
-        // Optionally, set metrics to an empty array or some default error state
+        const msg = e instanceof Error ? e.message : 'Unknown error';
+        setError(`Failed to fetch metrics: ${msg}`);
         setMetrics([]);
       } finally {
         setLoading(false);
@@ -81,10 +91,7 @@ export function GlobalMetricsSection() {
     };
 
     fetchMetrics();
-
-    // No cleanup needed for fetch in the same way as for setTimeout,
-    // but you could add an AbortController if the component might unmount
-    // while the fetch is in progress.
+    return () => controller.abort();
   }, []);
 
   return (

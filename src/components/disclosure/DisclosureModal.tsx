@@ -205,8 +205,12 @@ export function DisclosureModal({ open, onOpenChange }: DisclosureModalProps) {
           <div className="flex w-full items-center justify-between gap-3">
             <p className="text-xs text-muted-foreground">You can reopen this disclosure anytime from the top navigation.</p>
             <div>
-              <Button variant="outline" onClick={() => onOpenChange(false)}>
-                I Understand
+              <Button
+              variant="outline"
+              className="hover:bg-[#f74a17] hover:border-[#f74a17] hover:text-white"
+              onClick={() => onOpenChange(false)}
+              >
+              I Understand
               </Button>
             </div>
           </div>
