@@ -18,7 +18,7 @@ export function DisclosureWidget({ onOpen }: DisclosureWidgetProps) {
             variant="ghost"
             size="icon"
             onClick={onOpen}
-            className="h-8 w-8"
+            className="h-8 w-8 hover:bg-[#f74a17] hover:text-white focus-visible:ring-2 focus-visible:ring-[#f74a17] active:bg-[#e04415]"
             aria-label="Open Important Disclosure"
           >
             <Info className="h-4 w-4" />

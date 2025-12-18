@@ -27,7 +27,13 @@ export function ThemeToggleButton() {
   };
 
   return (
-    <Button variant="ghost" size="icon" onClick={toggleTheme} aria-label="Toggle theme">
+    <Button
+      variant="ghost"
+      size="icon"
+      onClick={toggleTheme}
+      aria-label="Toggle theme"
+      className="hover:bg-[#f74a17] hover:text-white focus-visible:ring-2 focus-visible:ring-[#f74a17] active:bg-[#e04415]"
+    >
       {theme === "light" ? <Moon className="h-5 w-5" /> : <Sun className="h-5 w-5" />}
     </Button>
   );
