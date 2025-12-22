@@ -230,6 +230,7 @@ export function ValidationRequestModal({
                 type="button"
                 variant="outline"
                 data-validation-modal-close
+                className="hover:bg-[#f74a17]"
               >
                 Cancel
               </Button>
