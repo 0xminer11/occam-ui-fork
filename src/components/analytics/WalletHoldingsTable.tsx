@@ -10,6 +10,8 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Dialog } from "@/components/ui/dialog";
+import { ValidationRequestModal } from "./ValidationRequestModal";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import {
@@ -41,6 +43,78 @@ type SortField = "btcBalance" | "change1d" | "change7d" | "change30d" | "usbdMin
 type SortDirection = "asc" | "desc";
 
 const ITEMS_PER_PAGE = 10;
+
+interface WalletRowProps {
+  wallet?: Wallet;
+  isBlurred?: boolean;
+}
+
+function WalletRow({ wallet, isBlurred = false }: WalletRowProps) {
+  const content = wallet ?? {
+    address: "bc1qxx...xxxx",
+    btcBalance: 0,
+    change1d: 0,
+    change7d: 0,
+    change30d: 0,
+    usbdMinted: 0,
+    lastActive: new Date(),
+  };
+
+  const blurClasses =
+    "pointer-events-none select-none cursor-default opacity-60 [filter:blur(4px)]";
+
+  return (
+    <TableRow
+      className={cn(
+        "relative border-border/30 transition-colors",
+        isBlurred ? "hover:bg-transparent" : "hover:bg-secondary/30"
+      )}
+    >
+      <TableCell className={isBlurred ? blurClasses : undefined}>
+        {isBlurred ? (
+          <span className="font-mono text-sm text-muted-foreground">
+            {content.address}
+          </span>
+        ) : (
+          <CopyableAddress address={content.address} />
+        )}
+      </TableCell>
+      <TableCell
+        className={cn(
+          "font-semibold text-foreground",
+          isBlurred && blurClasses
+        )}
+      >
+        {formatBTC(content.btcBalance)} BTC
+      </TableCell>
+      <TableCell className={isBlurred ? blurClasses : undefined}>
+        <ChangeIndicator value={content.change1d} />
+      </TableCell>
+      <TableCell className={isBlurred ? blurClasses : undefined}>
+        <ChangeIndicator value={content.change7d} />
+      </TableCell>
+      <TableCell className={isBlurred ? blurClasses : undefined}>
+        <ChangeIndicator value={content.change30d} />
+      </TableCell>
+      <TableCell className={cn("text-foreground", isBlurred && blurClasses)}>
+        ${formatCompactNumber(content.usbdMinted)}
+      </TableCell>
+      <TableCell
+        className={cn("text-muted-foreground", isBlurred && blurClasses)}
+      >
+        {formatTimeAgo(content.lastActive)}
+      </TableCell>
+
+      {isBlurred && (
+        <td className="pointer-events-none absolute inset-0 flex items-center justify-center">
+          <span className="rounded-full bg-background/80 px-3 py-1 text-xs font-medium text-muted-foreground shadow-sm ring-1 ring-border/60">
+            Hidden wallets available — validation required
+          </span>
+        </td>
+      )}
+    </TableRow>
+  );
+}
 
 function ChangeIndicator({ value }: { value: number }) {
   const isPositive = value >= 0;
@@ -134,6 +208,7 @@ export function WalletHoldingsTable({
   const [sortField, setSortField] = useState<SortField | null>("btcBalance");
   const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
   const [page, setPage] = useState(1);
+  const [isValidationOpen, setIsValidationOpen] = useState(false);
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {
@@ -200,13 +275,15 @@ export function WalletHoldingsTable({
   }
 
   return (
-    <Card className="gradient-card border-border/50">
-      <CardHeader>
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <CardTitle className="text-lg font-semibold">
-            User BTC Holdings
-          </CardTitle>
-          <div className="relative w-full sm:w-72">
+  <Dialog open={isValidationOpen} onOpenChange={setIsValidationOpen}>
+      <Card className="gradient-card border-border/50">
+        <CardHeader>
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <CardTitle className="text-lg font-semibold">
+              User BTC Holdings
+            </CardTitle>
+            <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:items-center">
+              <div className="relative w-full sm:w-72">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
               placeholder="Search wallet address..."
@@ -217,10 +294,18 @@ export function WalletHoldingsTable({
               }}
               className="pl-10 bg-secondary/50 border-border/50"
             />
+              </div>
+              <Button
+                type="button"
+                className="w-full whitespace-nowrap bg-[#f74a17] text-white hover:bg-[#e04415] active:bg-[#c53b12] sm:w-auto"
+                onClick={() => setIsValidationOpen(true)}
+              >
+                Request Validation
+              </Button>
+            </div>
           </div>
-        </div>
-      </CardHeader>
-      <CardContent>
+        </CardHeader>
+        <CardContent>
         <div className="overflow-x-auto">
           <Table>
             <TableHeader className="sticky top-0 bg-card">
@@ -292,32 +377,12 @@ export function WalletHoldingsTable({
             </TableHeader>
             <TableBody>
               {paginatedWallets.map((wallet) => (
-                <TableRow
-                  key={wallet.address}
-                  className="border-border/30 transition-colors hover:bg-secondary/30"
-                >
-                  <TableCell>
-                    <CopyableAddress address={wallet.address} />
-                  </TableCell>
-                  <TableCell className="font-semibold text-foreground">
-                    {formatBTC(wallet.btcBalance)} BTC
-                  </TableCell>
-                  <TableCell>
-                    <ChangeIndicator value={wallet.change1d} />
-                  </TableCell>
-                  <TableCell>
-                    <ChangeIndicator value={wallet.change7d} />
-                  </TableCell>
-                  <TableCell>
-                    <ChangeIndicator value={wallet.change30d} />
-                  </TableCell>
-                  <TableCell className="text-foreground">
-                    ${formatCompactNumber(wallet.usbdMinted)}
-                  </TableCell>
-                  <TableCell className="text-muted-foreground">
-                    {formatTimeAgo(wallet.lastActive)}
-                  </TableCell>
-                </TableRow>
+                <WalletRow key={wallet.address} wallet={wallet} />
+              ))}
+
+              {/* Blurred placeholder rows indicating additional hidden wallets */}
+              {Array.from({ length: 3 }).map((_, index) => (
+                <WalletRow key={`blurred-${index}`} isBlurred />
               ))}
             </TableBody>
           </Table>
@@ -354,7 +419,10 @@ export function WalletHoldingsTable({
             </Button>
           </div>
         </div>
-      </CardContent>
-    </Card>
+  </CardContent>
+  </Card>
+
+  <ValidationRequestModal pageContext="btc-holdings-dashboard" />
+    </Dialog>
   );
 }

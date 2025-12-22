@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { RefreshCw, Bitcoin, Coins, Shield, Users } from "lucide-react";
+import { RefreshCw, Bitcoin, Coins, Shield, Users, Lock } from "lucide-react";
 import { StatsCard } from "@/components/analytics/StatsCard";
 import { BTCDistributionPie } from "@/components/analytics/BTCDistributionPie";
 import { WalletHoldingsTable } from "@/components/analytics/WalletHoldingsTable";
@@ -13,6 +13,9 @@ export default function Analytics() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [loading, setLoading] = useState(false);
 
+  // Approximate total BTC in hidden wallets (update with real logic as needed)
+  const hiddenBtcApprox = 20;
+
   const handleRefresh = async () => {
     setIsRefreshing(true);
     setLoading(true);
@@ -21,6 +24,8 @@ export default function Analytics() {
     setLoading(false);
     setIsRefreshing(false);
   };
+
+  const hasRestricted = true; // This should be based on your actual data
 
   return (
     <div className="min-h-screen bg-background">
@@ -98,7 +103,30 @@ export default function Analytics() {
 
         {/* BTC Distribution Section */}
         <section className="mb-8 animate-fade-in" style={{ animationDelay: "0.3s" }}>
-          <BTCDistributionPie data={btcDistribution} loading={loading} />
+          {hasRestricted && (
+            <div className="flex items-center justify-between rounded-lg border border-dashed border-border/70 bg-secondary/40 p-3">
+              <div className="flex items-center gap-3">
+                <div className="flex h-6 w-6 items-center justify-center rounded-full bg-muted">
+                  <Lock className="h-3 w-3 text-muted-foreground" aria-hidden="true" />
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-xs font-medium text-foreground">
+                    Hidden Wallets
+                  </span>
+                  <span className="text-[11px] text-muted-foreground">
+                    Validation required to view distribution
+                  </span>
+                </div>
+              </div>
+              <span className="text-xs font-medium text-muted-foreground">
+                Restricted
+              </span>
+            </div>
+          )}
+          <BTCDistributionPie
+            data={btcDistribution}
+            hiddenBtcTotal={hiddenBtcApprox}
+          />
         </section>
 
         {/* Wallet Holdings Table */}

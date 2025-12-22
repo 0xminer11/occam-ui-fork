@@ -1,11 +1,16 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from "recharts";
+import { Lock } from "lucide-react";
 import { BTCDistribution } from "@/lib/analytics";
 import { truncateAddress, formatBTC } from "@/lib/formatters";
 
+interface BTCDistributionPieDatum extends BTCDistribution {
+  isRestricted?: boolean;
+}
+
 interface BTCDistributionPieProps {
   data: BTCDistribution[];
-  loading?: boolean;
+  hiddenBtcTotal?: number; // aggregated BTC for restricted wallets (approximate)
 }
 
 // Dark-theme friendly palette
@@ -23,6 +28,22 @@ const COLORS = [
 const CustomTooltip = ({ active, payload }: any) => {
   if (active && payload && payload.length) {
     const data = payload[0].payload;
+
+    if (data.isRestricted) {
+      const approxPercent = data.percentage
+        ? `~${Math.round(data.percentage)}% of total`
+        : "Partial share of total";
+
+      return (
+        <div className="gradient-card rounded-lg border border-border/50 p-3 shadow-xl">
+          <p className="text-xs font-semibold text-foreground">Hidden wallet distribution</p>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Validation required to view details.
+          </p>
+          <p className="mt-2 text-xs text-muted-foreground">{approxPercent}</p>
+        </div>
+      );
+    }
     return (
       <div className="gradient-card rounded-lg border border-border/50 p-3 shadow-xl">
         <p className="font-mono text-xs text-primary">
@@ -40,11 +61,44 @@ const CustomTooltip = ({ active, payload }: any) => {
   return null;
 };
 
-export function BTCDistributionPie({ data, loading = false }: BTCDistributionPieProps) {
-  const topHolders = [...data].sort((a, b) => b.btcAmount - a.btcAmount).slice(0, 3);
+export function BTCDistributionPie({
+  data,
+  hiddenBtcTotal,
+}: BTCDistributionPieProps) {
+  const totalVisibleBtc = data.reduce((acc, d) => acc + d.btcAmount, 0);
+  const hasRestricted = hiddenBtcTotal && hiddenBtcTotal > 0;
+
+  const totalBtcForPercent = totalVisibleBtc + (hiddenBtcTotal || 0);
+
+  const chartData: BTCDistributionPieDatum[] = data.map((d) => ({
+    ...d,
+    percentage: totalBtcForPercent
+      ? (d.btcAmount / totalBtcForPercent) * 100
+      : d.percentage,
+  }));
+
+  if (hasRestricted) {
+    const hiddenPercentage = totalBtcForPercent
+      ? (hiddenBtcTotal! / totalBtcForPercent) * 100
+      : undefined;
+
+    // chartData.push({
+    //   address: "hidden-wallets",
+    //   btcAmount: hiddenBtcTotal!,
+    //   percentage: hiddenPercentage || 0,
+    //   isRestricted: true,
+    // } as BTCDistributionPieDatum);
+  }
+
+  const topHolders = [...data]
+    .sort((a, b) => b.btcAmount - a.btcAmount)
+    .slice(0, 3);
   const largestPercentage = topHolders[0]?.percentage || 0;
   const smallHolders = data.filter((d) => d.btcAmount < 1);
-  const smallHoldersPercentage = smallHolders.reduce((acc, d) => acc + d.percentage, 0);
+  const smallHoldersPercentage = smallHolders.reduce(
+    (acc, d) => acc + d.percentage,
+    0
+  );
 
   return (
     <Card className="gradient-card border-border/50">
@@ -58,7 +112,7 @@ export function BTCDistributionPie({ data, loading = false }: BTCDistributionPie
             <ResponsiveContainer width="100%" height={280}>
               <PieChart>
                 <Pie
-                  data={data}
+                  data={chartData}
                   cx="50%"
                   cy="50%"
                   innerRadius={60}
@@ -68,17 +122,43 @@ export function BTCDistributionPie({ data, loading = false }: BTCDistributionPie
                   stroke="transparent"
                   strokeWidth={0}
                 >
-                  {data.map((_, index) => (
-                    <Cell
-                      key={`cell-${index}`}
-                      fill={COLORS[index % COLORS.length]}
-                      className="transition-opacity duration-200 hover:opacity-80"
-                    />
-                  ))}
+                  {chartData.map((entry, index) => {
+                    const isRestricted = entry.isRestricted;
+                    const baseColor = isRestricted
+                      ? "hsl(220, 10%, 35%)"
+                      : COLORS[index % COLORS.length];
+
+                    return (
+                      <Cell
+                        key={`cell-${index}`}
+                        fill={baseColor}
+                        className={
+                          isRestricted
+                            ? "cursor-default opacity-60 [stroke-width:1.5px] [stroke:rgba(148,163,184,0.55)]"
+                            : "transition-opacity duration-200 hover:opacity-80"
+                        }
+                        aria-label={
+                          isRestricted
+                            ? "Hidden wallet data — validation required"
+                            : undefined
+                        }
+                      />
+                    );
+                  })}
                 </Pie>
                 <Tooltip content={<CustomTooltip />} />
               </PieChart>
             </ResponsiveContainer>
+            {hasRestricted && (
+              <div className="pointer-events-none absolute flex flex-col items-center justify-center text-center">
+                <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  Partial View
+                </p>
+                <p className="mt-1 max-w-[120px] text-[11px] text-muted-foreground/80">
+                  Some wallet data is hidden
+                </p>
+              </div>
+            )}
           </div>
 
           {/* Legend / Insights Panel */}
@@ -114,6 +194,27 @@ export function BTCDistributionPie({ data, loading = false }: BTCDistributionPie
                 ))}
               </div>
             </div>
+
+            {hasRestricted && (
+              <div className="flex items-center justify-between rounded-lg border border-dashed border-border/70 bg-secondary/40 p-3">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-6 w-6 items-center justify-center rounded-full bg-muted">
+                    <Lock className="h-3 w-3 text-muted-foreground" aria-hidden="true" />
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-xs font-medium text-foreground">
+                      Hidden Wallets
+                    </span>
+                    <span className="text-[11px] text-muted-foreground">
+                      Validation required to view distribution
+                    </span>
+                  </div>
+                </div>
+                <span className="text-xs font-medium text-muted-foreground">
+                  Restricted
+                </span>
+              </div>
+            )}
 
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="rounded-lg border border-border/50 bg-secondary/30 p-4">
